@@ -34,6 +34,7 @@ Missiq processes chat transcripts **entirely inside your browser memory** using 
 | Interactive Source Inspection Drawer | P0 | **Implemented** | Highlights verbatim text & surrounding context without HTML injection |
 | In-Memory Task Completion & Undo | P0 | **Implemented** | Interactive checkboxes, 8s undo toast, pure RAM state |
 | One-Click Memory Clearing | P0 | **Implemented** | Instantly clears transcript & derived data; cancels worker |
+| Privacy & Correctness Audit | P0 | **Audited & Verified** | Zero storage/network leak, content-free errors, null-byte checks, 83 tests |
 | Automated E2E & Privacy Tests | P0 | **Implemented** | Playwright tests verify zero outbound network calls and user flows |
 | Genuine On-Device AI Model | P2 | *Optional Stretch* | Evaluated strictly against Gate G-MODEL |
 

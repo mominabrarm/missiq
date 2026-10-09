@@ -521,6 +521,53 @@ Implemented & Verified (Phase 5 Complete).
 #### Known Issues & Limitations
 None. All PRD Phase 5 acceptance criteria satisfied.
 
+### 13.6 Phase 6: Privacy and Correctness Audit
+
+#### Phase Objective
+Comprehensive audit of local-first privacy guarantees, worker lifecycle and cancellation correctness, input limits and boundary validation, analysis engine correctness against PRD V-01..V-10, data clearing, and security/accessibility compliance.
+
+#### Audit Findings & Fixes
+1. **Local-First Privacy & Zero Remote Transmission**:
+   - Confirmed 0 network APIs (`fetch`, `XMLHttpRequest`, `WebSocket`, `sendBeacon`, `EventSource`) in `src/`.
+   - Confirmed 0 persistence APIs (`localStorage`, `sessionStorage`, `indexedDB`, `document.cookie`) in `src/`.
+   - Production bundle in `dist/` contains 0 external URLs or telemetry endpoints.
+   - Playwright automated network inspection verified 0 outbound requests during paste, worker execution, source drawer viewing, and clearing.
+   - Added automated sentinel test verifying unique secret strings (`MISSIQ_SENTINEL_SECRET_TOKEN_998877`) are never present in any network URL or request body.
+   - Added automated web storage assertions confirming `localStorage.length === 0`, `sessionStorage.length === 0`, and `document.cookie === ""` after execution.
+2. **Worker Lifecycle, Cancellation & Stale Result Prevention**:
+   - Monotonic `runId` check verified in both `AnalysisWorkerClient` and `App.tsx` reducer.
+   - Tested cancellation immediately stopping active worker thread via `worker.terminate()` and discarding delayed responses.
+   - Verified that rapid re-runs or switching transcripts cannot overwrite state with an older run's results.
+3. **Input Validation & Content-Free Error Handling**:
+   - **Finding:** Worker error catch blocks originally passed raw `error.message` through to the caller.
+   - **Fix:** Enforced content-free error messages (`Analysis failed. Nothing was sent anywhere. Try again.` for `E-ANA-INTERNAL` and `This file does not look like plain text (binary data detected).` for `E-IMP-BINARY`). Error reporting never echoes transcript content.
+   - **Finding:** Binary files containing null bytes (`\0`) were not explicitly trapped prior to line splitting.
+   - **Fix:** Added null-byte detection in `ImportView.tsx` (both file upload reader and textarea paste) and in `runAnalysis` (`src/analysis/pipeline.ts`), cleanly throwing error code `E-IMP-BINARY`.
+   - Line length cap (`MAX_LINE_LENGTH = 10,000`) tested and verified to truncate excessively long lines with user warning without engine crash or ReDoS.
+4. **Security & Accessibility Audit**:
+   - Added `spellCheck={false}`, `autoComplete="off"`, `autoCorrect="off"`, `autoCapitalize="off"` to the transcript textarea in `ImportView.tsx` to prevent external spellcheck services (e.g. Chrome/Safari enhanced spellcheck) from transmitting chat text to cloud services (PRD §TM-06, §TM-11).
+   - Confirmed safe rendering: all transcript and excerpt strings are rendered as React text nodes, without `dangerouslySetInnerHTML`, `innerHTML`, or `eval`. Evidence highlighting uses character offset substrings rendered as child text elements.
+   - Audited prototype pollution protection (TM-12): tested sender names `__proto__` and `constructor` without prototype corruption.
+   - Confirmed 0 API keys, credentials, or private test chats committed to the repository.
+   - Audited `SourceDrawer.tsx`: verified `role="dialog"`, `aria-modal="true"`, `aria-labelledby`, Escape key handling, and touch backdrop dismissal.
+5. **Data Clearing**:
+   - Verified that `CLEAR_ALL` cancels active workers, increments `runId`, wipes all RAM state (`rawText`, `result`, `completedIds`, `selectedSource`, `identity`), and moves view to `cleared`.
+   - Verified that no stale results can repopulate state after clearing.
+
+#### Verification Results
+- `npm test`: 83/83 tests passing across 8 test files (0 failures).
+- `npm run typecheck`: 0 TypeScript errors.
+- `npm run lint`: 0 ESLint warnings, 0 errors.
+- `npm run build`: Clean production build in `dist/` (Vite 5).
+- `npx playwright test`: 4/4 E2E tests passing in Chromium (including network privacy, user journey, storage isolation, and sentinel leakage check).
+
+#### Status
+Implemented & Verified (Phase 6 Complete).
+
+#### Known Limitations & Residual Risks
+- As documented in PRD §19 (Threat Model), browser extensions with blanket page access or compromised host environments are outside the app's control. Missiq guarantees that its own application code never sends chat text or results over the network.
+- Reloading the page while offline requires the static assets to be cached by the browser HTTP cache; no service worker is installed in MVP (planned P2).
+
 ## 14. Current Project Status
 
 - Product identity: Defined (Missiq — Miss less. Know more. Your private chat intelligence).
@@ -534,8 +581,9 @@ None. All PRD Phase 5 acceptance criteria satisfied.
 - Core analysis engine: Implemented & Verified (Phase 3).
 - Web Worker pipeline: Implemented & Verified (Phase 4).
 - User interface (MVP UI Integration): Implemented & Verified (Phase 5).
-- Automated tests & build: Verified passing (Phase 5: 73/73 unit tests, 3/3 e2e tests, clean production build).
-- Privacy verification: E2E network test verified passing (0 outbound requests).
+- Privacy and correctness audit: Implemented & Verified (Phase 6).
+- Automated tests & build: Verified passing (Phase 6: 83/83 unit tests, 4/4 e2e tests, clean production build).
+- Privacy verification: E2E network test verified passing (0 outbound requests, 0 storage items, 0 sentinel leakage).
 - Deployment: Planned (Phase 7).
 
 

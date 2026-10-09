@@ -65,5 +65,49 @@ test.describe('Missiq Local-First Privacy & UI Shell', () => {
     await page.getByRole('button', { name: 'Clear all imported data and results' }).click();
     await expect(page.getByRole('heading', { level: 1 })).toContainText('Your data was cleared.');
     await expect(page.getByRole('status')).toContainText('Data cleared');
+
+    // 8. Assert zero persistent storage per PRD §18.2, §18.5
+    const storageState = await page.evaluate(() => ({
+      // eslint-disable-next-line no-restricted-globals
+      localStorageCount: localStorage.length,
+      // eslint-disable-next-line no-restricted-globals
+      sessionStorageCount: sessionStorage.length,
+      cookie: document.cookie,
+    }));
+
+    expect(storageState.localStorageCount).toBe(0);
+    expect(storageState.sessionStorageCount).toBe(0);
+    expect(storageState.cookie).toBe('');
+  });
+
+  test('verifies transcript content with sentinel string is never sent over network', async ({ page }) => {
+    const sentinel = 'MISSIQ_SENTINEL_SECRET_TOKEN_998877';
+    let sentinelLeaked = false;
+
+    page.on('request', (request) => {
+      const url = request.url();
+      const postData = request.postData() || '';
+      if (url.includes(sentinel) || postData.includes(sentinel)) {
+        sentinelLeaked = true;
+      }
+    });
+
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Start a briefing' }).click();
+
+    // Paste custom transcript containing sentinel
+    const textarea = page.getByPlaceholder(/Paste your chat messages here/i);
+    await textarea.fill(`[10/03/2026, 09:12] Priya: ${sentinel} must be submitted by tomorrow.`);
+
+    await page.getByRole('button', { name: 'Analyze messages' }).click();
+
+    // Verify briefing renders
+    await expect(page.getByRole('heading', { level: 1 })).toContainText('Conversation Briefing');
+
+    // Clear data
+    await page.getByRole('button', { name: 'Clear all imported data and results' }).click();
+    await expect(page.getByRole('heading', { level: 1 })).toContainText('Your data was cleared.');
+
+    expect(sentinelLeaked).toBe(false);
   });
 });

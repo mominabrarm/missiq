@@ -72,6 +72,10 @@ export const ImportView: React.FC<ImportViewProps> = ({
     reader.onload = (e) => {
       const content = e.target?.result;
       if (typeof content === 'string') {
+        if (content.includes('\0')) {
+          setFileError("This file does not appear to be plain text (binary/null bytes detected, PRD E-IMP-BINARY).");
+          return;
+        }
         onTextChange(content, false);
       }
     };
@@ -247,10 +251,19 @@ export const ImportView: React.FC<ImportViewProps> = ({
               value={rawText}
               onChange={(e) => {
                 setFileError(null);
-                onTextChange(e.target.value, false);
+                const val = e.target.value;
+                if (val.includes('\0')) {
+                  setFileError("Transcript contains binary/null bytes (PRD E-IMP-BINARY).");
+                  return;
+                }
+                onTextChange(val, false);
               }}
               placeholder={`Paste your chat messages here...\n\nExample formats supported:\n[10/03/2026, 09:12] Priya: Reminder: demo on Friday\n10/03/2026, 09:15 - Aarav: Got it, working on slides\n2026-03-10 09:20 Rohan: I'll review tonight`}
               rows={16}
+              spellCheck={false}
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="off"
               className="w-full bg-transparent p-4 text-sm font-mono text-ice placeholder:text-ice-muted/40 focus:outline-none resize-y leading-relaxed"
               aria-describedby="transcript-hints"
             />

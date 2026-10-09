@@ -69,6 +69,11 @@ export function runAnalysis(options: AnalysisOptions): AnalysisPipelineResult {
     isSample, runId, forcePlainText,
   } = options;
 
+  // Reject binary input containing null bytes per PRD §17.3, §21.1
+  if (rawText.includes('\0')) {
+    throw new Error('E-IMP-BINARY');
+  }
+
   // Step 1: Parse transcript
   let parseResult: ParseResult;
   if (forcePlainText) {

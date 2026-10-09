@@ -118,7 +118,7 @@ export class AnalysisWorkerClient {
         }
       };
 
-      this.worker.onerror = (error: ErrorEvent) => {
+      this.worker.onerror = () => {
         const callbacks = this.activeCallbacks;
         this.activeCallbacks = null;
         if (this.worker) {
@@ -126,7 +126,7 @@ export class AnalysisWorkerClient {
           this.worker = null;
         }
         callbacks?.onError(
-          error.message || 'Worker thread execution error',
+          'Analysis failed. Nothing was sent anywhere. Try again.',
           'E-ANA-INTERNAL'
         );
       };
@@ -170,8 +170,12 @@ export class AnalysisWorkerClient {
           return;
         }
         this.activeCallbacks = null;
-        const errMsg = err instanceof Error ? err.message : 'Analysis failed';
-        callbacks.onError(errMsg, 'E-ANA-INTERNAL');
+        const isBinary = err instanceof Error && err.message === 'E-IMP-BINARY';
+        const code: ErrorCode = isBinary ? 'E-IMP-BINARY' : 'E-ANA-INTERNAL';
+        const errMsg = isBinary
+          ? 'This file does not look like plain text (binary data detected).'
+          : 'Analysis failed. Nothing was sent anywhere. Try again.';
+        callbacks.onError(errMsg, code);
       }
     }, 0);
   }

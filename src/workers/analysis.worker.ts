@@ -45,11 +45,15 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
     };
     self.postMessage(response);
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Analysis failed unexpectedly';
+    const isBinary = error instanceof Error && error.message === 'E-IMP-BINARY';
+    const code = isBinary ? 'E-IMP-BINARY' : 'E-ANA-INTERNAL';
+    const message = isBinary
+      ? 'This file does not look like plain text (binary data detected).'
+      : 'Analysis failed. Nothing was sent anywhere. Try again.';
     const errorResponse: WorkerResponse = {
       type: 'ANALYSIS_ERROR',
       error: message,
-      code: 'E-ANA-INTERNAL',
+      code,
       runId,
     };
     self.postMessage(errorResponse);
