@@ -26,12 +26,15 @@ Missiq processes chat transcripts **entirely inside your browser memory** using 
 | Project Scaffold & Core Types | P0 | **Implemented** | React 18, TypeScript, Vite, Tailwind CSS, Vitest |
 | Application Shell & Brand | P0 | **Implemented** | Radar SVG logo, Midnight/Mint tokens, StatusChip, PrivacyFooter |
 | Reference Validator (`V-01..V-10`) | P0 | **Implemented** | Strictly grounds insights in source messages |
-| Unit Tests (`tests/unit/model.test.ts`) | P0 | **Implemented** | 100% pass on data model & validator rules |
-| Local Transcript Parsing (F1–F4) | P0 | *Pending Phase 3* | Parses bracketed, dash, ISO, and sender-only formats |
-| Local Analysis Engine (Tasks/Dates) | P0 | *Pending Phase 3* | Extracts deadlines, tasks, and negation markers |
-| Priority Feed & Briefing Dashboard | P0 | *Pending Phase 4* | Rule table R-PRI-01..12 and template briefing |
-| Interactive Source Drawer | P0 | *Pending Phase 5* | Highlights verbatim text & context without HTML injection |
-| Playwright Privacy Verification | P0 | **Configured** | E2E test verifying zero outbound network calls |
+| Local Transcript Parsing (F1–F4) | P0 | **Implemented** | Parses bracketed, dash, ISO, and bracketed Slack/Teams formats |
+| Deterministic Analysis Engine | P0 | **Implemented** | Extracts tasks, deadlines, decisions, mentions, announcements |
+| Explainable Priority Engine | P0 | **Implemented** | Rules R-PRI-01..12 ranking with human-readable reason tags |
+| Web Worker Architecture | P0 | **Implemented** | Typed worker client, stage progress, cancellation, runId guard |
+| Complete MVP UI Integration | P0 | **Implemented** | Responsive views: Import, Analyzing stepper, Briefing Results |
+| Interactive Source Inspection Drawer | P0 | **Implemented** | Highlights verbatim text & surrounding context without HTML injection |
+| In-Memory Task Completion & Undo | P0 | **Implemented** | Interactive checkboxes, 8s undo toast, pure RAM state |
+| One-Click Memory Clearing | P0 | **Implemented** | Instantly clears transcript & derived data; cancels worker |
+| Automated E2E & Privacy Tests | P0 | **Implemented** | Playwright tests verify zero outbound network calls and user flows |
 | Genuine On-Device AI Model | P2 | *Optional Stretch* | Evaluated strictly against Gate G-MODEL |
 
 ---

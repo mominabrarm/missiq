@@ -32,4 +32,38 @@ test.describe('Missiq Local-First Privacy & UI Shell', () => {
 
     expect(externalRequests).toHaveLength(0);
   });
+
+  test('completes full user journey: import sample -> analyze -> view results -> inspect source -> clear data', async ({ page }) => {
+    await page.goto('/');
+
+    // 1. Click "Try synthetic sample"
+    await page.getByRole('button', { name: 'Try synthetic sample' }).click();
+
+    // 2. Arrives at Import view with sample loaded
+    await expect(page.getByRole('heading', { level: 1 })).toContainText('Import Conversation');
+    await expect(page.getByRole('button', { name: 'Analyze messages' })).toBeEnabled();
+
+    // 3. Click "Analyze messages"
+    await page.getByRole('button', { name: 'Analyze messages' }).click();
+
+    // 4. Arrives at Results view
+    await expect(page.getByRole('heading', { level: 1 })).toContainText('Conversation Briefing');
+    await expect(page.getByRole('heading', { name: 'Needs Attention' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Tasks & Deadlines' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Important Decisions' })).toBeVisible();
+
+    // 5. Open source inspection drawer
+    const sourceButton = page.getByRole('button', { name: /Inspect source/i }).first();
+    await sourceButton.click();
+    await expect(page.getByRole('heading', { name: 'Source Message Inspection' })).toBeVisible();
+
+    // 6. Close source drawer
+    await page.getByRole('button', { name: 'Close source drawer' }).click();
+    await expect(page.getByRole('heading', { name: 'Source Message Inspection' })).not.toBeVisible();
+
+    // 7. Clear all data
+    await page.getByRole('button', { name: 'Clear all imported data and results' }).click();
+    await expect(page.getByRole('heading', { level: 1 })).toContainText('Your data was cleared.');
+    await expect(page.getByRole('status')).toContainText('Data cleared');
+  });
 });
